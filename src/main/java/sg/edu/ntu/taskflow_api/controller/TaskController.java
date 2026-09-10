@@ -1,5 +1,6 @@
 package sg.edu.ntu.taskflow_api.controller;
 
+import org.springframework.ai.chat.client.ChatClient;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -9,6 +10,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+
 import java.util.List;
 import sg.edu.ntu.taskflow_api.model.Task;
 import sg.edu.ntu.taskflow_api.service.TaskService;
@@ -21,8 +23,38 @@ public class TaskController {
     // Constructor injection for TaskService
     private final TaskService taskService;
 
-    public TaskController(TaskService taskService) {
+    // public TaskController(TaskService taskService) {
+    // this.taskService = taskService;
+    // }
+
+    private final String initialText = "This is a list of all tasks:";
+
+    private final ChatClient chatClient;
+
+    public TaskController(TaskService taskService, ChatClient.Builder chatClientBuilder) {
         this.taskService = taskService;
+        this.chatClient = chatClientBuilder.build();
+    }
+
+    @GetMapping("/summary")
+    public String summary() {
+        List<Task> allTasks = taskService.findAllTasks();
+        String message = initialText + "\n\n" + formatTasks(allTasks);
+        return chatClient.prompt()
+                .system("You are a friendly and professional Task Manager. " +
+                        "Given a list of tasks, write a short plain-English summary of what is pending and what is done " +
+                        "Keep your answers concise and practical. ")
+                .user(message)
+                .call()
+                .content();
+    }
+
+    private String formatTasks(List<Task> tasks) {
+        StringBuilder sb = new StringBuilder();
+        for (Task task : tasks) {
+            sb.append("- ").append(task.getTitle()).append(" [").append(task.isCompleted()).append("]").append("\n");
+        }
+        return sb.toString();
     }
 
     // READ (GET ALL)

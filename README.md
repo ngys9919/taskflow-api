@@ -199,15 +199,26 @@ The application loads this value in `src/main/resources/application.properties`.
 
 ### 3. Install Dependencies
 
+#### 3.1 Using Maven Wrapper
+
 ```bash
 ./mvnw install
 ```
 
 ### 4. Run the Application
 
+#### 4.1 With Maven Installed
+
+```bash
+mvn spring-boot:run
+```
+
+#### 4.2 Using Maven Wrapper
+
 ```bash
 ./mvnw spring-boot:run
 ```
+
 
 The server should start on the default Spring Boot port:
 
